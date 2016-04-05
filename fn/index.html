@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>浙江在线设计部 前端实用手册</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" type="text/css" href="laycode/laycode.css" />
+<link rel="stylesheet" type="text/css" href="css/all.css?v=4"/>
+</head>
+<body>
+<header class="banner">
+	<div class="w1024">前端实用手册</div>
+</header>
+<div class="w1024">
+	<h1 class="fnTitle mb10">闪图方法</h1>
+	<p class="fnAbs mb10">该方法适用于图片切换类型的动画效果的实现，类似于git图片的逐帧动画。</p>
+	<h3>代码如下：</h3>
+	<pre class="code mb10">
+$.fn.extend({
+	//个数，单个位移距离，单位名称，切换速度，状态(true:背景sp循环切换显示；false：背景sp累加显示)，横竖排(true:竖排；false：横排)
+	carousel: function (num,space,pcs,speed,state,hv){
+		var _i = 0 , m = - 1 , _this = this;  //使用this,减少全局检索，增强性能。
+	    setInterval(function(){
+	    	//竖排(hv=true):水平位置固定，垂直位置根据单个位移自动累计； 横排(hv=false):垂直位置固定，水平位置根据单个位移自动累计；
+        	_this.css("background-position",hv?"0 -"+space*_i+ pcs:"-"+space*_i+ pcs +" 0");
+	        if(state){
+	        	m = _i <= 0 || _i >= num - 1 ? -m : m ;
+	            _i += m  ; //i叠加，背景sp循环切换显示
+	        } else{
+	            _i = _i + 1 >= num ? 0 : _i + 1 ;//i累加,背景sp自动累加
+	        }
+	    },speed);
+	}
+});
+	</pre>
+	<h3>展示效果：</h3>
+	<div class="demo">
+		<div class="fn1Demo1"></div>
+	<div class="code mb10">
+	<pre name="fooname" class="js">$(".fn1Demo1").carousel(12,140,'px',50,false,false);</pre>
+	</div>
+	</div>
+	<h3>使用方法：</h3>
+	<ol class="listAbs">
+		<li>该方法依赖于JQuery库，所以请先导入JQuery库</li>
+		<li>请该上面代码复制到项目的JS文件中。</li>
+		<li>使用时，只需要像其他JQuery方法一样使用即可。</li>
+		<li>sp图片，在定义DIV时指定。</li>
+	</ol>
+	<h3>参数简介：</h3>
+	<pre class="code">carousel: function (num,space,pcs,speed,state,hv)</pre>
+	<ol class="listAbs">
+		<li>num:个数，即图片切换的张数；</li>
+		<li>space:单个位移距离；该方法使用的是雪碧图(sp)图片，sp图分水平和垂直2种布局方式。</li>
+		<li>pcs:单位名称，一般为px和rem；</li>
+		<li>speed:单帧切换速度；</li>
+		<li>state:布尔类型，为true则显示效果为1帧、2帧、3帧、4帧...1帧、2帧、3帧、4帧；为false则显示效果为1帧、2帧、3帧、4帧、3帧、2帧、1帧....1帧、2帧、3帧、4帧、3帧、2帧、1帧</li>
+		<li>hv:单个位移距离；该方法使用的是雪碧图(sp)图片，sp图分水平和垂直2种布局方式。</li>
+	</ol>
+	<!---->
+	<h1 class="fnTitle mb10">loading代码</h1>
+	<p class="fnAbs mb10">根据图片加载情况判断过门动画何时消失。</p>
+	<pre class="code">
+//定义变量：t保存setTimeout对象；imgs则为资源图片数组，n为循环次数
+var t,imgs = [
+     'images/A5003_fd.jpg' ,
+     'images/A5003_fm.jpg' ,
+     'images/A5003_lyh.jpg' ,
+     'images/A5003_my.jpg' ,
+     'images/A5003_sp_name.png' ,
+    'images/A5003_sp.png'
+ ],n = 0 ;
+//调用loading()方法
+loading();
+function loading() {
+   //创建Image对象  
+   img = new Image();
+   //指定img的图片
+   img.src = imgs[n];
+   //如果该图片完成加载，则调用overs方法
+   img.onload = overs ;
+    function overs() {
+       //完成一张图片载入后，n自动加1
+       n ++ ;
+       //清除setTimeout对象
+       clearTimeout(t) ;
+       //如果完成载入的图片记数于实际图片数量相同则停止过门显示效果
+        if(n == imgs.length) {
+           windows.removeSlide( 0);
+       } else{
+              //否则继续调用loading方法测试加载
+           t = setTimeout(loading, 500 );
+       }
+   }
+   t = setTimeout(loading,500 );
+}
+	</pre>
+	<h3>使用方法：</h3>
+	<ol class="listAbs">
+		<li>该方法适用于移动端页面，且使用swiper框架制作的loading动效，且loading页面为swiper的第一个slide，swiper的对象命名成'windows';注意代码的26行，windows.removeSlide(0)的作用是在页面图片加载完成后，去除第一个slide，即loading页面。</li>
+		<li>使用时，将代码复制进js文件中，将在页面上引用，并指定imgs数组中的图片，图片是需要计数加预加载的图片。代码：2-9行所示</li>
+		<li>该方法中，所判断的图片，必须是真实存在的，如果有图片是错误的，页面将永远卡在loading页面。</li>
+	</ol>
+	<div class="imgFN">
+		<img src="images/fn2.gif"/>
+		<p>如上图所示，在找不到图片A5003_sp.png1时，就会出现卡在loading页面的情况。</p>
+	</div>
+	<h1 class="fnTitle mb10">比例缩放</h1>
+	<p class="fnAbs mb10">根据用户端屏幕大小，缩放页面，使页面在任何屏幕上，都可以显示完整。</p>
+	<pre class="code">
+(function ( doc, win ) {
+    var _root = doc.documentElement,
+        resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize' ,
+        resizeCallback = function () {
+            var clientWidth = _root.clientWidth,
+                fontSize = 16;
+            if (! clientWidth) return;
+            if(clientWidth < 640) {
+                fontSize = 16 * (clientWidth / 320 );
+            } else {
+                fontSize = 16 * (640 / 320);
+            }
+            _root. style .fontSize = fontSize + 'px' ;
+            resizeScale();
+            swiper.onResize();
+        };
+        //根据屏幕大小缩放整个页面
+        resizeScale = function (){
+            //zh页面的高度
+             var zh = document.body.offsetHeight,_root = document.documentElement;
+            //如果页面的高度大于设备高度
+            if(zh> _root.clientHeight){
+                 //得到比例
+                var bl = _root.clientHeight/zh ;
+                setting(bl, "static","0" ,(zh - _root.clientHeight) /2,_root.clientHeight +"px");
+            } else{
+                 //原比列，使用absolute让内容垂直居中
+                setting(1, "absolute","50%" ,document.body.offsetHeight /2, "auto");
+            }
+            //根据比例，对页面进行缩放
+             function setting (_s, _p,_t ,_m, _h){ // _s:比例；_p:position状态；_t:top值：_m:向上移动的值
+                document.body.setAttribute("style" ,"transform:scale("+ _s+");-webkit-transform:scale(" +_s+ ");position:"+_p +";top:"+ _t+";margin-top:-" +_m+ "px;");
+                _root. style.height = _h ;
+            }
+        }
+    if (! doc.addEventListener) return;
+    win.addEventListener(resizeEvent, resizeCallback, false);
+    doc.addEventListener( 'DOMContentLoaded', resizeCallback, false);
+})(document, window);
+	</pre>
+	<h3>使用方法：</h3>
+	<ol class="listAbs">
+		<li>该方法内嵌入rem.js代码中。使用时，将rem.js代码替换为上面代码内容；</li>
+	</ol>
+	
+	<h1 class="fnTitle mb10">横屏提示</h1>
+	<p class="fnAbs mb10">切换横屏后提示以竖屏查看。</p>
+	<pre class="code">
+orient("images/mobileIcon.png");
+function orient(img){
+    var newdiv = document.createElement("div");
+    if(navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)&&document.documentElement.clientWidth>document.documentElement.clientHeight){addOrientTip();}
+    window.addEventListener('orientationchange', function(event){
+        if ( window.orientation == 180 || window.orientation==0 ) {
+            document.body.removeChild(newdiv);
+        }
+        if( window.orientation == 90 || window.orientation == -90 ) {
+            addOrientTip();
+        }
+    });
+    function addOrientTip(){
+        //满屏背景
+            newdiv.style.backgroundColor = "#00a0a9";
+            newdiv.style.position = "absolute";
+            newdiv.style.top = "0";
+            newdiv.style.left = "0";
+            newdiv.style.bottom = "0";
+            newdiv.style.right = "0";
+            newdiv.style.zIndex = "99999";
+        //内部DIV
+        var newinner = document.createElement("div");
+            newinner.style.position = "absolute";
+            newinner.style.top = "50%";
+            newinner.style.marginTop = "-53px";
+            newinner.style.left = "50%";
+            newinner.style.marginLeft = "-200px";
+            newinner.style.width = "400px";
+            newinner.style.height = "106px";
+        //图片
+        var newimg = document.createElement("img");
+            newimg.src = img;
+            newimg.style.width = "120px";
+            newimg.style.float = "left";
+            newinner.appendChild(newimg);
+        //文字
+        var textdiv = document.createElement("div");
+            textdiv.style.float = "right";
+            textdiv.style.width = "260px";
+            textdiv.style.color = "#ffffff";
+            textdiv.style.fontSize = "28px";
+            textdiv.style.lineHeight = "36px";
+            textdiv.style.marginTop = "15px";
+        var newtext=document.createTextNode("请将手机竖起浏览，达到完美呈现效果。");
+            textdiv.appendChild(newtext);
+            newinner.appendChild(textdiv);
+            newdiv.appendChild(newinner);
+            document.body.appendChild(newdiv);
+    }
+}
+	</pre>
+	<h3>使用方法：</h3>
+	<ol class="listAbs">
+		<li>该方法不依赖于任何插件，使用原生Javascript编写。</li>
+		<li>使用时，将上述代码复制到js文件中，在第一行orient("...")引号中，指定图标图片，图片大小120px*120px;如图:<img src="images/mobileIcon.png" alt="" /></li>
+		<li>修改15行代码的颜色值，可以改变背景颜色；</li>
+		<li>修改41行代码的颜色值，可以改变文字颜色；</li>
+		<li>修改45行文字，可以改变显示文字；</li>
+	</ol>
+	<div class="imgFN">
+		<img src="images/fn4.gif"/>
+		<p>如上图所示，在手机切换横屏后，自动显示提示页面，用以提示用户，以坚屏方式显示最佳效果。</p>
+	</div>
+</div>
+
+<footer class="foot">
+	浙江在线设计部 前端
+</footer>
+<!------------------------------------------------------------------------------------>
+<script src="js/jquery-1.12.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="laycode/laycode.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/fn.min.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>
